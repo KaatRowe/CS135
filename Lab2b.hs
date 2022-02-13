@@ -1,4 +1,9 @@
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Eta reduce" #-}
 module Lab2b where
+
+----------------------------------------------------------------
+--Help from Colin, Khadja, Bryan
 
 -- Some imports you'll need. Don't add other imports :)
 import Data.List
@@ -14,12 +19,11 @@ import Data.List
 -- Hint! pattern matching is your friend.
 
 binomial :: Integer -> Integer -> Integer
--- binomial n 0 = 1
--- binomial n k = if k > 0 && n == 0 then 1 else binomial (n-1) (k-1)
-binomial n k
-    | k == 0 = 1
-    | n == 0 && k > 0 = 1
-    | otherwise = binomial (n-1) (k-1)
+binomial _ 0 = 1
+binomial 0 k = 0
+binomial n k = binomial (n - 1) k + binomial (n - 1) (k - 1)
+
+
 
 ------------------------------------------------------------------------------
 -- Ex 2: implement the odd factorial function. Odd factorial is like
@@ -30,12 +34,11 @@ binomial n k
 --   oddFactorial 6 ==> 5*3*1 ==> 15
 
 oddFactorial :: Integer -> Integer
-oddFactorial = oddFactorial' 1
+oddFactorial n = oddFactorial' 1 n
 
 oddFactorial' :: Integer -> Integer -> Integer
-oddFactorial' total 0 = total
-oddFactorial' total n = oddFactorial' (total * n) n
-    where even n = n - 1
+oddFactorial' total 1 = total
+oddFactorial' total n = if odd n then oddFactorial' (total * n) (n - 2) else oddFactorial' total (n - 1)
 
 ------------------------------------------------------------------------------
 -- Ex 3: implement the Euclidean Algorithm for finding the greatest
@@ -67,7 +70,9 @@ oddFactorial' total n = oddFactorial' (total * n) n
 -- * https://en.wikipedia.org/wiki/Euclidean_algorithm
 
 myGcd :: Integer -> Integer -> Integer
-myGcd = undefined
+myGcd 0 b = b
+myGcd a 0 = a
+myGcd a b = if a < b then myGcd a (b - a)  else myGcd (a - b) b
 
 ------------------------------------------------------------------------------
 -- Ex 4: Implement the function leftpad which adds space characters
@@ -83,7 +88,9 @@ myGcd = undefined
 -- * you can compute the length of a string with the length function
 
 leftpad :: String -> Int -> String
-leftpad = undefined
+leftpad x n
+        | length x  < n = leftpad (" " ++ x) (n)
+        | otherwise = x
 
 ------------------------------------------------------------------------------
 -- Ex 5: let's make a countdown for a rocket! Given a number, you
@@ -99,7 +106,12 @@ leftpad = undefined
 -- * you'll probably need a recursive helper function
 
 countdown :: Integer -> String
-countdown = undefined
+countdown n = "Ready!" ++ countdown' n ++ "Liftoff!"
+
+
+countdown' :: Integer -> [Char]
+countdown' n
+     = if n > 0 then show n ++ "... " ++ countdown' (n-1) else show n
 
 ------------------------------------------------------------------------------
 -- Ex 6: implement the function smallestDivisor that returns the
@@ -117,8 +129,10 @@ countdown = undefined
 -- Hint: remember the mod function!
 
 smallestDivisor :: Integer -> Integer
-smallestDivisor = undefined
+smallestDivisor n = sdHelper n 2
 
+sdHelper :: Integer -> Integer -> Integer
+sdHelper n k = if n `mod` k  == 0 then k else sdHelper n (k+1)
 ------------------------------------------------------------------------------
 -- Ex 7: implement a function isPrime that checks if the given number
 -- is a prime number. Use the function smallestDivisor.
@@ -126,7 +140,10 @@ smallestDivisor = undefined
 -- Ps. 0 and 1 are not prime numbers
 
 isPrime :: Integer -> Bool
-isPrime = undefined
+isPrime n
+    | n == 0 || n == 1 = False
+    |smallestDivisor n == n = True
+    | otherwise = False
 
 ------------------------------------------------------------------------------
 -- Ex 8: implement a function biggestPrimeAtMost that returns the
@@ -141,4 +158,4 @@ isPrime = undefined
 --   biggestPrimeAtMost 10 ==> 7
 
 biggestPrimeAtMost :: Integer -> Integer
-biggestPrimeAtMost = undefined
+biggestPrimeAtMost n = if isPrime n then n else biggestPrimeAtMost(n - 1)
