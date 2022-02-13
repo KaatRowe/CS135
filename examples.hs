@@ -29,6 +29,6 @@ f x y z = x + y + z
 
 
 --QUESTIONS
---Hashmap in Haskell?
---Using higher-order functions can you do a map (f . g) x 
+--Hashmap in Haskell? - Techinically yes
+--Using higher-order functions can you do a map (f . g) x - Yes and you can do Lambda as well
 

@@ -28,6 +28,8 @@ import Data.List
 maxBy :: (a -> Int) -> a -> a -> a
 maxBy measure a b = undefined
 
+measure = undefined
+
 ------------------------------------------------------------------------------
 -- Ex 2: implement the function mapMaybe that takes a function and a
 -- Maybe value. If the value is Nothing, it returns Nothing. If it is
@@ -38,7 +40,8 @@ maxBy measure a b = undefined
 --   mapMaybe length (Just "abc") ==> Just 3
 
 mapMaybe :: (a -> b) -> Maybe a -> Maybe b
-mapMaybe f x = undefined
+mapMaybe f Nothing = Nothing
+mapMaybe f (Just x) = Just(f x)
 
 ------------------------------------------------------------------------------
 -- Ex 3: implement the function mapMaybe2 that works like mapMaybe
@@ -52,7 +55,9 @@ mapMaybe f x = undefined
 --   mapMaybe2 div (Just 6) Nothing   ==>  Nothing
 
 mapMaybe2 :: (a -> b -> c) -> Maybe a -> Maybe b -> Maybe c
-mapMaybe2 f x y = undefined
+mapMaybe2 f Nothing y = Nothing
+mapMaybe2 f x Nothing = Nothing
+mapMaybe2 f (Just x) (Just y) = Just (f x y)
 
 ------------------------------------------------------------------------------
 -- Ex 4: define the functions firstHalf and palindrome so that
@@ -72,11 +77,14 @@ mapMaybe2 f x y = undefined
 -- Note! Do not change the definition of palindromeHalfs
 
 palindromeHalfs :: [String] -> [String]
-palindromeHalfs xs = map firstHalf (filter palindrome xs)
+palindromeHalfs xs = firstHalf xs :: [] 
 
-firstHalf = undefined
+firstHalf x = take(length (x `div` 2)) (map palindrome x)
 
-palindrome = undefined
+palindrome :: [String] -> Bool
+palindrome str
+    | reverse str == str = True
+    | otherwise = False
 
 ------------------------------------------------------------------------------
 -- Ex 5: Implement a function capitalize that takes in a string and
