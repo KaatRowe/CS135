@@ -41,7 +41,7 @@ measure = undefined
 
 mapMaybe :: (a -> b) -> Maybe a -> Maybe b
 mapMaybe f Nothing = Nothing
-mapMaybe f (Just x) = Just(f x)
+mapMaybe f (Just x) = Just (f x)
 
 ------------------------------------------------------------------------------
 -- Ex 3: implement the function mapMaybe2 that works like mapMaybe
@@ -77,14 +77,15 @@ mapMaybe2 f (Just x) (Just y) = Just (f x y)
 -- Note! Do not change the definition of palindromeHalfs
 
 palindromeHalfs :: [String] -> [String]
-palindromeHalfs xs = firstHalf xs :: [] 
+palindromeHalfs xs = firstHalf xs : []
 
-firstHalf x = take(length (x `div` 2)) (map palindrome x)
+firstHalf :: [String] -> [String]
+firstHalf x = take (length (x `div` 2)) (map palindrome x)
 
 palindrome :: [String] -> Bool
 palindrome str
-    | reverse str == str = True
-    | otherwise = False
+  | reverse str == str = True
+  | otherwise = False 
 
 ------------------------------------------------------------------------------
 -- Ex 5: Implement a function capitalize that takes in a string and
@@ -141,7 +142,7 @@ powers k max = undefined
 --   in while check tail "xyzAvvt"
 --     ==> Avvt
 
-while :: (a->Bool) -> (a->a) -> a -> a
+while :: (a -> Bool) -> (a -> a) -> a -> a
 while check update value = undefined
 
 ------------------------------------------------------------------------------
@@ -164,7 +165,7 @@ whileRight f x = undefined
 -- for the whileRight examples:
 -- step k x doubles x if it's less than k
 step :: Int -> Int -> Either Int Int
-step k x = if x<k then Right (2*x) else Left x
+step k x = if x < k then Right (2 * x) else Left x
 
 ------------------------------------------------------------------------------
 -- Ex 9: given a list of strings and a length, return all strings that
@@ -191,7 +192,6 @@ joinToLength = undefined
 --   [1,2,3] +|+ [4,5,6]  ==> [1,4]
 --   [] +|+ [True]        ==> [True]
 --   [] +|+ []            ==> []
-
 
 ------------------------------------------------------------------------------
 -- Ex 11: remember the lectureParticipants example from Lecture 2? We
