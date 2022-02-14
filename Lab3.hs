@@ -284,4 +284,15 @@ multiApp = undefined
 -- function, the surprise won't work.
 
 interpreter :: [String] -> [String]
-interpreter commands = undefined
+interpreter = interp (0, 0) 
+
+interp :: (Int, Int) -> [String] -> [String]
+interp (x, y) [] = []
+interp (x, y) (c:cs) = case c of  
+  "up" -> interp (x, y + 1) cs
+  "down" -> interp (x, y - 1) cs
+  "left" -> interp (x - 1, y) cs
+  "right" -> interp (x + 1, y) cs
+  "printX" -> show x : interp (x, y) cs
+  "printY" -> show y : interp (x, y) cs
+  _ -> "invalid command" : interp (x, y) cs
