@@ -2,6 +2,7 @@
 --
 --  * lists
 --  * functional programming
+{-# LANGUAGE FlexibleContexts #-}
 
 module Lab3 where
 
@@ -77,15 +78,16 @@ mapMaybe2 f (Just x) (Just y) = Just (f x y)
 -- Note! Do not change the definition of palindromeHalfs
 
 palindromeHalfs :: [String] -> [String]
-palindromeHalfs xs = undefined --map firstHalf (filter palindrome xs)
+palindromeHalfs xs = map firstHalf (filter palindrome xs)
 
-firstHalf :: [String] -> [String]
-firstHalf x = undefined --take (length (x `div` 2)) (palindrome x)
 
-palindrome :: [String] -> [String]
+firstHalf :: [a] -> [a]
+firstHalf x = take ((length x `div` 2) + (length x `mod` 2)) x
+
+palindrome :: Eq a => [a] -> Bool
 palindrome str
-  | reverse str == str = str
-  | otherwise = []
+  | reverse str == str = True
+  | otherwise = False
 
 ------------------------------------------------------------------------------
 -- Ex 5: Implement a function capitalize that takes in a string and
@@ -103,11 +105,10 @@ palindrome str
 --   capitalize "goodbye cruel world" ==> "Goodbye Cruel World"
 
 capitalize :: String -> String
-capitalize x = undefined
+capitalize x = undefined--[capitalizeFirst y | y <- words x]
 
-
-capitalizeFirst x = head x toUpper
-
+capitalizeFirst :: [(Char -> Char) -> t] -> t
+capitalizeFirst x = undefined--(head x)toUpper ++ tail x
 ------------------------------------------------------------------------------
 -- Ex 6: powers k max should return all the powers of k that are less
 -- than or equal to max. For example:
@@ -123,7 +124,7 @@ capitalizeFirst x = head x toUpper
 --   * the function takeWhile
 
 powers :: Int -> Int -> [Int]
-powers k max = undefined
+powers k max = takeWhile (\x -> x * k < max) [1..(k*max)]
 
 ------------------------------------------------------------------------------
 -- Ex 7: implement a functional while loop. While should be a function
@@ -184,7 +185,8 @@ step k x = if x < k then Right (2 * x) else Left x
 -- Hint! This is a great use for list comprehensions
 
 joinToLength :: Int -> [String] -> [String]
-joinToLength = undefined
+joinToLength n list = undefined 
+  
 
 ------------------------------------------------------------------------------
 -- Ex 10: implement the operator +|+ that returns a list with the first
@@ -283,11 +285,11 @@ multiApp = undefined
 -- function, the surprise won't work.
 
 interpreter :: [String] -> [String]
-interpreter = interp (0, 0) 
+interpreter = interp (0, 0)
 
 interp :: (Int, Int) -> [String] -> [String]
 interp (x, y) [] = []
-interp (x, y) (c:cs) = case c of  
+interp (x, y) (c:cs) = case c of
   "up" -> interp (x, y + 1) cs
   "down" -> interp (x, y - 1) cs
   "left" -> interp (x - 1, y) cs
