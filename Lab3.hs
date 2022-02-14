@@ -10,6 +10,9 @@ module Lab3 where
 import Data.Char
 import Data.Either
 import Data.List
+import System.Win32 (COORD(y))
+
+--Help from Khadja, Bryan, Colin
 
 ------------------------------------------------------------------------------
 -- Ex 1: implement the function maxBy that takes as argument a
@@ -26,9 +29,7 @@ import Data.List
 --  maxBy head   [1,2,3] [4,5]  ==>  [4,5]
 
 maxBy :: (a -> Int) -> a -> a -> a
-maxBy measure a b = undefined
-
-measure = undefined
+maxBy measure a b = if measure a > measure b then a else b
 
 ------------------------------------------------------------------------------
 -- Ex 2: implement the function mapMaybe that takes a function and a
@@ -77,15 +78,15 @@ mapMaybe2 f (Just x) (Just y) = Just (f x y)
 -- Note! Do not change the definition of palindromeHalfs
 
 palindromeHalfs :: [String] -> [String]
-palindromeHalfs xs = firstHalf xs : []
+palindromeHalfs xs = undefined --map firstHalf (filter palindrome xs)
 
 firstHalf :: [String] -> [String]
-firstHalf x = take (length (x `div` 2)) (map palindrome x)
+firstHalf x = undefined --take (length (x `div` 2)) (palindrome x)
 
-palindrome :: [String] -> Bool
+palindrome :: [String] -> [String]
 palindrome str
-  | reverse str == str = True
-  | otherwise = False 
+  | reverse str == str = str
+  | otherwise = []
 
 ------------------------------------------------------------------------------
 -- Ex 5: Implement a function capitalize that takes in a string and
@@ -103,7 +104,10 @@ palindrome str
 --   capitalize "goodbye cruel world" ==> "Goodbye Cruel World"
 
 capitalize :: String -> String
-capitalize = undefined
+capitalize x = undefined
+
+
+capitalizeFirst x = head x toUpper
 
 ------------------------------------------------------------------------------
 -- Ex 6: powers k max should return all the powers of k that are less
@@ -143,7 +147,7 @@ powers k max = undefined
 --     ==> Avvt
 
 while :: (a -> Bool) -> (a -> a) -> a -> a
-while check update value = undefined
+while check update value = if not (check value) then value else while check update (update value)
 
 ------------------------------------------------------------------------------
 -- Ex 8: another version of a while loop. This time, the check
@@ -160,7 +164,9 @@ while check update value = undefined
 --   whileRight (step 1000) 3  ==> 1536
 
 whileRight :: (a -> Either b a) -> a -> b
-whileRight f x = undefined
+whileRight f x  = case f x of
+  Left y -> y
+  Right y -> whileRight f y
 
 -- for the whileRight examples:
 -- step k x doubles x if it's less than k
