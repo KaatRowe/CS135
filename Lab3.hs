@@ -10,7 +10,6 @@ module Lab3 where
 import Data.Char
 import Data.Either
 import Data.List
-import System.Win32 (COORD(y))
 
 --Help from Khadja, Bryan, Colin
 
