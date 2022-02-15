@@ -2,7 +2,6 @@
 --
 --  * lists
 --  * functional programming
-{-# LANGUAGE FlexibleContexts #-}
 
 module Lab3 where
 
@@ -124,8 +123,10 @@ capitalizeFirst x = undefined--(head x)toUpper ++ tail x
 --   * the function takeWhile
 
 powers :: Int -> Int -> [Int]
-powers k max = takeWhile (\x -> x * k < max) [1..(k*max)]
+powers k max = takeWhile (\x -> x ^ k <= max) [0..max] 
 
+
+--Fix: powers, captilize do: joinToLength, sumRights, multiCompose, multiApp
 ------------------------------------------------------------------------------
 -- Ex 7: implement a functional while loop. While should be a function
 -- that takes a checking function, an updating function, and an
@@ -185,8 +186,8 @@ step k x = if x < k then Right (2 * x) else Left x
 -- Hint! This is a great use for list comprehensions
 
 joinToLength :: Int -> [String] -> [String]
-joinToLength n list = undefined 
-  
+joinToLength = undefined
+
 
 ------------------------------------------------------------------------------
 -- Ex 10: implement the operator +|+ that returns a list with the first
@@ -199,6 +200,8 @@ joinToLength n list = undefined
 --   [1,2,3] +|+ [4,5,6]  ==> [1,4]
 --   [] +|+ [True]        ==> [True]
 --   [] +|+ []            ==> []
+
+(+|+) :: [a] -> [a] -> [a]
 
 ------------------------------------------------------------------------------
 -- Ex 11: remember the lectureParticipants example from Lecture 2? We
@@ -215,7 +218,7 @@ joinToLength n list = undefined
 --   sumRights [Left "bad!", Left "missing"]         ==>  0
 
 sumRights :: [Either a Int] -> Int
-sumRights = undefined
+sumRights [x] = 
 
 ------------------------------------------------------------------------------
 -- Ex 12: recall the binary function composition operation
@@ -231,7 +234,8 @@ sumRights = undefined
 --   multiCompose [(3*), (2^), (+1)] 0 ==> 6
 --   multiCompose [(+1), (2^), (3*)] 0 ==> 2
 
-multiCompose fs = undefined
+multiCompose :: [a -> a] -> a -> a
+multiCompose fs = undefined 
 
 ------------------------------------------------------------------------------
 -- Ex 13: let's consider another way to compose multiple functions. Given
@@ -250,6 +254,7 @@ multiCompose fs = undefined
 --   multiApp reverse [tail, take 2, reverse] "foo" ==> ["oof","fo","oo"]
 --   multiApp concat [take 3, reverse] "race" ==> "racecar"
 
+multiApp :: ([b] -> c) -> [a -> b] -> b -> c
 multiApp = undefined
 
 ------------------------------------------------------------------------------
