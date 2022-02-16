@@ -2,7 +2,7 @@
 --
 --  * lists
 --  * functional programming
-
+{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 module Lab3 where
 
 -- Some imports you'll need.
@@ -104,10 +104,11 @@ palindrome str
 --   capitalize "goodbye cruel world" ==> "Goodbye Cruel World"
 
 capitalize :: String -> String
-capitalize x = undefined--[capitalizeFirst y | y <- words x]
+capitalize x = unwords (map capitalizeFirst (words x))
 
-capitalizeFirst :: [(Char -> Char) -> t] -> t
-capitalizeFirst x = undefined--(head x)toUpper ++ tail x
+
+capitalizeFirst :: String -> String
+capitalizeFirst x = toUpper (head x) : tail x
 ------------------------------------------------------------------------------
 -- Ex 6: powers k max should return all the powers of k that are less
 -- than or equal to max. For example:
@@ -123,7 +124,11 @@ capitalizeFirst x = undefined--(head x)toUpper ++ tail x
 --   * the function takeWhile
 
 powers :: Int -> Int -> [Int]
-powers k max = takeWhile (\x -> x ^ k <= max) [0..max] 
+powers k max = powerHelper k k max [] 
+
+powerHelper :: Int -> Int -> Int -> [Int] -> [Int]
+powerHelper k g max [] = powerHelper k g max [1]
+powerHelper k g max list = if k <= max then powerHelper (k*g) g max (list ++ [k]) else list
 
 
 --Fix: powers, captilize do: joinToLength, sumRights, multiCompose, multiApp
@@ -201,7 +206,8 @@ joinToLength = undefined
 --   [] +|+ [True]        ==> [True]
 --   [] +|+ []            ==> []
 
-(+|+) :: [a] -> [a] -> [a]
+--(+|+) :: [a] -> [a] -> [a]
+
 
 ------------------------------------------------------------------------------
 -- Ex 11: remember the lectureParticipants example from Lecture 2? We
@@ -218,7 +224,7 @@ joinToLength = undefined
 --   sumRights [Left "bad!", Left "missing"]         ==>  0
 
 sumRights :: [Either a Int] -> Int
-sumRights [x] = 
+sumRights [x] = undefined
 
 ------------------------------------------------------------------------------
 -- Ex 12: recall the binary function composition operation
@@ -235,7 +241,7 @@ sumRights [x] =
 --   multiCompose [(+1), (2^), (3*)] 0 ==> 2
 
 multiCompose :: [a -> a] -> a -> a
-multiCompose fs = undefined 
+multiCompose fs = undefined
 
 ------------------------------------------------------------------------------
 -- Ex 13: let's consider another way to compose multiple functions. Given
