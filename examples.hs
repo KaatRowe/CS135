@@ -32,3 +32,8 @@ f x y z = x + y + z
 --Hashmap in Haskell? - Techinically yes
 --Using higher-order functions can you do a map (f . g) x - Yes and you can do Lambda as well
 
+
+isEven :: Integral a => a -> Bool
+isEven n = n `mod` 2 == 0 
+
+foldr (+) 0 [1, 2, 3]

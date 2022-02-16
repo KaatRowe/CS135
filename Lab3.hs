@@ -124,11 +124,13 @@ capitalizeFirst x = toUpper (head x) : tail x
 --   * the function takeWhile
 
 powers :: Int -> Int -> [Int]
-powers k max = powerHelper k k max [] 
+powers k max = powerHelper k k max []
 
 powerHelper :: Int -> Int -> Int -> [Int] -> [Int]
 powerHelper k g max [] = powerHelper k g max [1]
-powerHelper k g max list = if k <= max then powerHelper (k*g) g max (list ++ [k]) else list
+powerHelper k g max list
+  | k <= max = powerHelper (k*g) g max (list ++ [k])
+  |otherwise = list
 
 
 --Fix: powers, captilize do: joinToLength, sumRights, multiCompose, multiApp
@@ -191,7 +193,7 @@ step k x = if x < k then Right (2 * x) else Left x
 -- Hint! This is a great use for list comprehensions
 
 joinToLength :: Int -> [String] -> [String]
-joinToLength = undefined
+joinToLength n list = [x | x <- list, y <- list, length x == n || length (x:y) == n]
 
 
 ------------------------------------------------------------------------------
@@ -224,7 +226,9 @@ joinToLength = undefined
 --   sumRights [Left "bad!", Left "missing"]         ==>  0
 
 sumRights :: [Either a Int] -> Int
-sumRights [x] = undefined
+sumRights [] = 0
+--sumRights [Left _ :xs] = sumRights xs
+--sumRights [Right x:xs] = x + sumRights xs
 
 ------------------------------------------------------------------------------
 -- Ex 12: recall the binary function composition operation
@@ -240,8 +244,10 @@ sumRights [x] = undefined
 --   multiCompose [(3*), (2^), (+1)] 0 ==> 6
 --   multiCompose [(+1), (2^), (3*)] 0 ==> 2
 
+
 multiCompose :: [a -> a] -> a -> a
-multiCompose fs = undefined
+multiCompose fs x = foldl (\ x f -> f x) x (reverse fs)
+
 
 ------------------------------------------------------------------------------
 -- Ex 13: let's consider another way to compose multiple functions. Given
@@ -261,7 +267,10 @@ multiCompose fs = undefined
 --   multiApp concat [take 3, reverse] "race" ==> "racecar"
 
 multiApp :: ([b] -> c) -> [a -> b] -> b -> c
-multiApp = undefined
+multiApp f gs x = f (multiAppHelper gs x)
+
+multiAppHelper :: Foldable t1 => t1 (t2 -> t2) -> t2 -> t2
+multiAppHelper gs x = foldl (\ x g -> g x) x gs
 
 ------------------------------------------------------------------------------
 -- Ex 14: in this exercise you get to implement an interpreter for a

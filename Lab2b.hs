@@ -89,7 +89,7 @@ myGcd a b = if a < b then myGcd a (b - a)  else myGcd (a - b) b
 
 leftpad :: String -> Int -> String
 leftpad x n
-        | length x  < n = leftpad (" " ++ x) (n)
+        | length x  < n = leftpad (" " ++ x) n
         | otherwise = x
 
 ------------------------------------------------------------------------------
