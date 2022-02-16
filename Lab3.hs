@@ -11,7 +11,7 @@ import Data.Char
 import Data.Either
 import Data.List
 
---Help from Khadja, Bryan, Colin
+--Help from Khadja, Bryan, Colin, Case
 
 ------------------------------------------------------------------------------
 -- Ex 1: implement the function maxBy that takes as argument a
@@ -193,7 +193,7 @@ step k x = if x < k then Right (2 * x) else Left x
 -- Hint! This is a great use for list comprehensions
 
 joinToLength :: Int -> [String] -> [String]
-joinToLength n list = [x | x <- list, y <- list, length x == n || length (x:y) == n]
+joinToLength n list =  filter ((==n) . length) [x ++ y| x <- list, y <- list]
 
 
 ------------------------------------------------------------------------------
@@ -208,7 +208,7 @@ joinToLength n list = [x | x <- list, y <- list, length x == n || length (x:y) =
 --   [] +|+ [True]        ==> [True]
 --   [] +|+ []            ==> []
 
---(+|+) :: [a] -> [a] -> [a]
+(+|+) :: [a] -> [a] -> [a]
 
 
 ------------------------------------------------------------------------------
@@ -227,8 +227,8 @@ joinToLength n list = [x | x <- list, y <- list, length x == n || length (x:y) =
 
 sumRights :: [Either a Int] -> Int
 sumRights [] = 0
---sumRights [Left _ :xs] = sumRights xs
---sumRights [Right x:xs] = x + sumRights xs
+sumRights (Left _ :xs) = sumRights xs
+sumRights (Right x:xs) = x + sumRights xs
 
 ------------------------------------------------------------------------------
 -- Ex 12: recall the binary function composition operation
@@ -266,11 +266,9 @@ multiCompose fs x = foldl (\ x f -> f x) x (reverse fs)
 --   multiApp reverse [tail, take 2, reverse] "foo" ==> ["oof","fo","oo"]
 --   multiApp concat [take 3, reverse] "race" ==> "racecar"
 
-multiApp :: ([b] -> c) -> [a -> b] -> b -> c
-multiApp f gs x = f (multiAppHelper gs x)
+multiApp :: ([a] -> t1) -> [t2 -> a] -> t2 -> t1
+multiApp f gs x =  f ([g x | g <- gs])
 
-multiAppHelper :: Foldable t1 => t1 (t2 -> t2) -> t2 -> t2
-multiAppHelper gs x = foldl (\ x g -> g x) x gs
 
 ------------------------------------------------------------------------------
 -- Ex 14: in this exercise you get to implement an interpreter for a
