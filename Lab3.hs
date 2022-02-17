@@ -7,6 +7,7 @@ module Lab3 where
 
 -- Some imports you'll need.
 -- Do not add any other imports! :)
+
 import Data.Char
 import Data.Either
 import Data.List
@@ -209,7 +210,10 @@ joinToLength n list =  filter ((==n) . length) [x ++ y| x <- list, y <- list]
 --   [] +|+ []            ==> []
 
 (+|+) :: [a] -> [a] -> [a]
-
+[] +|+ [] = []
+[] +|+ (x:xs) = [x]
+(x:xs) +|+ [] = [x]
+(x:xs) +|+ (y:ys) = [x, y]
 
 ------------------------------------------------------------------------------
 -- Ex 11: remember the lectureParticipants example from Lecture 2? We

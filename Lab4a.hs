@@ -102,9 +102,10 @@ rangeOf (x:y:xs) = if x > y then rangeOf (x:xs) else rangeOf (y:xs)
 --   longest ["bcd","def","ab"] ==> "bcd"
 
 longest [] = 0
---longest (x:y:xs) 
---    | length x > length y && longest (x:xs)
---    | otherwise = if head x < head y then y else x
+longest (x:y:xs) 
+    | length x > length y && longest (x:xs) = x
+    | length x < length y  && longest (y:xs) = y
+    | otherwise = if head x < head y then y else x
 
 ------------------------------------------------------------------------------
 -- Ex 6: Implement the function incrementKey, that takes a list of
@@ -121,10 +122,10 @@ longest [] = 0
 --   incrementKey 'a' [('a',3.4)] ==> [('a',4.4)]
 
 incrementKey :: k -> [(k,v)] -> [(k,v)]
-incrementKey k [] = []
---incrementKey k [(i, j)] = if i == k then j + 1 else incrementKey k []
---incrementKey k [(i, j): xs] =  if i == k then j + 1 && incrementKey k [xs] else incrementKey k [xs]
+incrementKey k [(i, j)] = map (incrementKey' (i, j) k) [(i, j)]
 
+incrementKey' :: (a, b) -> a -> (a, b)
+incrementKey' (i, j) k = if k == i then j + 1 else (i, j)
 ------------------------------------------------------------------------------
 -- Ex 7: compute the average of a list of values of the Fractional
 -- class.
