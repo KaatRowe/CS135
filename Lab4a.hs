@@ -13,15 +13,13 @@
 --  * maximum
 --  * minimum
 --  * sort
---{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
 module Lab4a where
 
 import Data.List
 import Data.Ord
-import System.Win32 (COORD(x))
 
---Help from Colin
+--Help from Colin, Khadija
 
 ------------------------------------------------------------------------------
 -- Ex 1: implement the function allEqual which returns True if all
