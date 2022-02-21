@@ -1,3 +1,7 @@
+module Lab4a where
+
+import Data.List
+import Data.Ord
 -- Exercise set 4a:
 --
 -- * using type classes
@@ -14,12 +18,7 @@
 --  * minimum
 --  * sort
 
-module Lab4a where
-
-import Data.List
-import Data.Ord
-
---Help from Colin, Khadija
+--Help from Colin
 
 ------------------------------------------------------------------------------
 -- Ex 1: implement the function allEqual which returns True if all
@@ -65,14 +64,13 @@ distinct (x:y:zs) = (x /= y) && distinct (y:zs)
 -- Examples:
 --   middle 'b' 'a' 'c'  ==> 'b'
 --   middle 1 7 3        ==> 3
-
-middle :: Ord a => a -> a -> a -> a
-middle x y z 
-    | x <= y && y <= x  = y
-    | y <= x && x <= z = x
-    | x <= z && z <= y = z
-
-------------------------------------------------------------------------------
+middle :: Ord a => [a] -> [a] -> [a] -> [a]
+middle [] [] [] = []
+middle x y z
+     | x <= y && y <= x  = y
+     | y <= x && x <= z = x
+     | x <= z && z <= y = z
+-------------------------------------------------------------------------------
 -- Ex 4: return the range of an input list, that is, the difference
 -- between the smallest and the largest element.
 --
@@ -85,13 +83,20 @@ middle x y z
 --   rangeOf [4,2,1,3]          ==> 3
 --   rangeOf [1.5,1.0,1.1,1.2]  ==> 0.5
 
-
-rangeOf :: (Num p, Ord a) => [a] -> p
+rangeOf :: (Num a, Ord a) => [a] -> a
 rangeOf [] = 0
-rangeOf [x] = 1
-rangeOf (x:y:xs) = rangeMax - rangeMin where
-    rangeMax = if x > y then rangeOf (x:xs) else rangeOf (y:xs)
-    rangeMin = if x < y then rangeOf (x:xs) else rangeOf (y:xs)
+rangeOf [x] = x
+rangeOf (x:y:xs) = rangeMax (x:y:xs) - rangeMin (x:y:xs)
+
+rangeMax :: (Num a, Ord a) => [a] -> a
+rangeMax [] = 0
+rangeMax [x] = x
+rangeMax (x:y:xs) = if x > y then rangeMax (x:xs) else rangeMax (y:xs)
+
+rangeMin :: (Num a, Ord a) => [a] -> a
+rangeMin [] = 0
+rangeMin [x] = x
+rangeMin (x:y:xs) = if x < y then rangeMin (x:xs) else rangeMin (y:xs)
 
 ------------------------------------------------------------------------------
 -- Ex 5: given a list of lists, return the longest list. If there
@@ -107,11 +112,12 @@ rangeOf (x:y:xs) = rangeMax - rangeMin where
 --   longest [[1,2,3],[4,5],[6]] ==> [1,2,3]
 --   longest ["bcd","def","ab"] ==> "bcd"
 
---longest [] = 0
---longest (x:y:xs) 
-  --  | length x > length y && longest (x:xs) = x
-    -- | length x < length y  && longest (y:xs) = y
-    -- | otherwise = if head x < head y then y else x
+longest :: [[a]] -> [a]
+longest [] = []
+longest [x] = x
+longest (x:y:xs) = if length x > length y then longest(x:xs) else longest (y:xs)
+
+
 
 ------------------------------------------------------------------------------
 -- Ex 6: Implement the function incrementKey, that takes a list of
@@ -127,11 +133,7 @@ rangeOf (x:y:xs) = rangeMax - rangeMin where
 --   incrementKey True [(True,1),(False,3),(True,4)] ==> [(True,2),(False,3),(True,5)]
 --   incrementKey 'a' [('a',3.4)] ==> [('a',4.4)]
 
---incrementKey :: k -> [(k,v)] -> [(k,v)]
---incrementKey k [(i, j)] = map (incrementKey' (i, j) k) [(i, j)]
-
---incrementKey' :: (a, b) -> a -> (a, b)
---incrementKey' (i, j) k = if k == i then j + 1 else (i, j)
+incrementKey = undefined 
 ------------------------------------------------------------------------------
 -- Ex 7: compute the average of a list of values of the Fractional
 -- class.
