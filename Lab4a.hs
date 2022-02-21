@@ -19,7 +19,7 @@ import Data.Ord
 --  * minimum
 --  * sort
 
---Help from Colin
+--Help from Colin, Bryan
 
 ------------------------------------------------------------------------------
 -- Ex 1: implement the function allEqual which returns True if all
@@ -118,8 +118,6 @@ longest [] = []
 longest [x] = x
 longest (x:y:xs) = if length x > length y then longest(x:xs) else longest (y:xs)
 
-
-
 ------------------------------------------------------------------------------
 -- Ex 6: Implement the function incrementKey, that takes a list of
 -- (key,value) pairs, and adds 1 to all the values that have the given key.
@@ -135,6 +133,11 @@ longest (x:y:xs) = if length x > length y then longest(x:xs) else longest (y:xs)
 --   incrementKey 'a' [('a',3.4)] ==> [('a',4.4)]
 
 
+--[(i,j)] -> [i] [j] [j + 1 | j <- j] -> zip [i] [j]
+
+incrementKey :: (Eq t, Num b) => t -> [(t, b)] -> [(t, b)]
+incrementKey k [] = (k, 0)
+incrementKey k [(i, j):js] = if i ==k then (i, j+1) else incrementKey k [js]
 ------------------------------------------------------------------------------
 -- Ex 7: compute the average of a list of values of the Fractional
 -- class.
