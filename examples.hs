@@ -36,4 +36,5 @@ f x y z = x + y + z
 isEven :: Integral a => a -> Bool
 isEven n = n `mod` 2 == 0 
 
-foldr (+) 0 [1, 2, 3]
+foldr (+) 0 [1, 2, 3] --summing the list indexes with 0 if 0 was 1 then add 1 to the summation
+

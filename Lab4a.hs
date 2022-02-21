@@ -52,9 +52,9 @@ allEqual (x:y:zs) = x == y && allEqual (y:zs)
 --   distinct [1,2] ==> True
 
 distinct :: Eq a => [a] -> Bool
-distinct [] = False
+distinct [] = True
 distinct [x] = True
-distinct (x:y:zs) = (x /= y) && distinct (y:zs)
+distinct (x:y:zs) = x /= y && distinct (y:zs) && distinct (x:zs)
 ------------------------------------------------------------------------------
 -- Ex 3: implement the function middle that returns the middle value
 -- (not the smallest or the largest) out of its three arguments.
@@ -67,10 +67,7 @@ distinct (x:y:zs) = (x /= y) && distinct (y:zs)
 --   middle 1 7 3        ==> 3
 
 middle :: Ord a => a -> a -> a -> a
-middle x y z
-  | min x y == y && min x z == x = x
-  | min x y == x && min y z == y = y
-  | otherwise = z
+middle x y z = sort [x, y, z] !! 1
 -------------------------------------------------------------------------------
 -- Ex 4: return the range of an input list, that is, the difference
 -- between the smallest and the largest element.
@@ -113,10 +110,14 @@ rangeMin (x:y:xs) = if x < y then rangeMin (x:xs) else rangeMin (y:xs)
 --   longest [[1,2,3],[4,5],[6]] ==> [1,2,3]
 --   longest ["bcd","def","ab"] ==> "bcd"
 
-longest :: [[a]] -> [a]
+longest :: Ord a => [[a]] -> [a]
 longest [] = []
 longest [x] = x
-longest (x:y:xs) = if length x > length y then longest(x:xs) else longest (y:xs)
+longest (x:y:xs) 
+    | length x > length y = longest(x:xs)
+    | length x < length y = longest (y:xs)
+    | length x == length y && head x > head y = longest (y:xs)
+    | otherwise = longest (x:xs)
 
 ------------------------------------------------------------------------------
 -- Ex 6: Implement the function incrementKey, that takes a list of
@@ -136,8 +137,13 @@ longest (x:y:xs) = if length x > length y then longest(x:xs) else longest (y:xs)
 --[(i,j)] -> [i] [j] [j + 1 | j <- j] -> zip [i] [j]
 
 incrementKey :: (Eq t, Num b) => t -> [(t, b)] -> [(t, b)]
-incrementKey k [] = (k, 0)
-incrementKey k [(i, j):js] = if i ==k then (i, j+1) else incrementKey k [js]
+incrementKey k [] = []
+incrementKey k (x:xs) = if fst x == k then addOne x : incrementKey k xs else x : incrementKey k xs
+
+addOne :: Num b => (a, b) -> (a, b)
+addOne (i, j) = (i, j+1)
+
+
 ------------------------------------------------------------------------------
 -- Ex 7: compute the average of a list of values of the Fractional
 -- class.
