@@ -2,6 +2,7 @@ module Lab4a where
 
 import Data.List
 import Data.Ord
+
 -- Exercise set 4a:
 --
 -- * using type classes
@@ -64,12 +65,12 @@ distinct (x:y:zs) = (x /= y) && distinct (y:zs)
 -- Examples:
 --   middle 'b' 'a' 'c'  ==> 'b'
 --   middle 1 7 3        ==> 3
-middle :: Ord a => [a] -> [a] -> [a] -> [a]
-middle [] [] [] = []
+
+middle :: Ord a => a -> a -> a -> a
 middle x y z
-     | x <= y && y <= x  = y
-     | y <= x && x <= z = x
-     | x <= z && z <= y = z
+  | min x y == y && min x z == x = x
+  | min x y == x && min y z == y = y
+  | otherwise = z
 -------------------------------------------------------------------------------
 -- Ex 4: return the range of an input list, that is, the difference
 -- between the smallest and the largest element.
@@ -133,7 +134,7 @@ longest (x:y:xs) = if length x > length y then longest(x:xs) else longest (y:xs)
 --   incrementKey True [(True,1),(False,3),(True,4)] ==> [(True,2),(False,3),(True,5)]
 --   incrementKey 'a' [('a',3.4)] ==> [('a',4.4)]
 
-incrementKey = undefined 
+
 ------------------------------------------------------------------------------
 -- Ex 7: compute the average of a list of values of the Fractional
 -- class.
