@@ -2,7 +2,7 @@
 
 module Lab4b where
 
---Help from Colin
+--Help from Colin, Bryan, Sydney, Blake
 
 ------------------------------------------------------------------------------
 -- Ex 1: countNothings with a fold. The function countNothings from
@@ -21,7 +21,7 @@ module Lab4b where
 countNothings :: [Maybe a] -> Int
 countNothings xs = foldr countHelper 0 xs
 
-countHelper :: Maybe a -> Int -> Int 
+countHelper :: Maybe a -> Int -> Int
 countHelper Nothing count = count+1
 countHelper _ count = count
 
@@ -61,7 +61,7 @@ slStart = (0.0, 0)
 
 
 slHelper :: Double -> (Double, Int) -> (Double, Int)
-slHelper x (s,l) = (s+x, l+1) 
+slHelper x (s,l) = (s+x, l+1)
 
 
 ------------------------------------------------------------------------------
@@ -80,7 +80,7 @@ concatStart :: [a]
 concatStart = []
 
 concatHelper :: [a] -> [a] -> [a]
-concatHelper [x] [y] = undefined 
+concatHelper = (++)
 
 ------------------------------------------------------------------------------
 -- Ex 5: get all occurrences of the largest number in a list with a
@@ -94,8 +94,12 @@ concatHelper [x] [y] = undefined
 largest :: [Int] -> [Int]
 largest xs = foldr largestHelper [] xs
 
-largestHelper = undefined
-
+largestHelper :: Int -> [Int] -> [Int]
+largestHelper x xs
+    | null xs = [x]
+    | x > head xs = [x]
+    | x == head xs = x :xs
+    |otherwise = xs
 
 ------------------------------------------------------------------------------
 -- Ex 6: get the first element of a list with a fold. Define
@@ -128,4 +132,5 @@ myLast xs = foldr lastHelper Nothing xs
 
 
 lastHelper :: a -> Maybe a -> Maybe a
-lastHelper a b = undefined
+lastHelper a Nothing = Just a
+lastHelper a (Just b) = Just b
