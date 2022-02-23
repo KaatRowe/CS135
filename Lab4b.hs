@@ -21,7 +21,9 @@ module Lab4b where
 countNothings :: [Maybe a] -> Int
 countNothings xs = foldr countHelper 0 xs
 
-countHelper = undefined
+countHelper :: Maybe a -> Int -> Int 
+countHelper Nothing count = count+1
+countHelper _ count = count
 
 ------------------------------------------------------------------------------
 -- Ex 2: myMaximum with a fold. Just like in the previous exercise,
@@ -35,7 +37,8 @@ myMaximum :: [Int] -> Int
 myMaximum [] = 0
 myMaximum (x:xs) = foldr maxHelper x xs
 
-maxHelper = undefined
+maxHelper :: Ord a => a -> a -> a
+maxHelper = max
 
 ------------------------------------------------------------------------------
 -- Ex 3: compute the sum and length of a list with a fold. Define
@@ -52,8 +55,14 @@ maxHelper = undefined
 sumAndLength :: [Double] -> (Double,Int)
 sumAndLength xs = foldr slHelper slStart xs
 
-slStart = undefined
-slHelper = undefined
+
+slStart :: (Double, Int)
+slStart = (0.0, 0)
+
+
+slHelper :: Double -> (Double, Int) -> (Double, Int)
+slHelper x (s,l) = (s+x, l+1) 
+
 
 ------------------------------------------------------------------------------
 -- Ex 4: implement concat with a fold. Define concatHelper and
@@ -67,8 +76,11 @@ slHelper = undefined
 myConcat :: [[a]] -> [a]
 myConcat xs = foldr concatHelper concatStart xs
 
-concatStart = undefined
-concatHelper = undefined
+concatStart :: [a]
+concatStart = []
+
+concatHelper :: [a] -> [a] -> [a]
+concatHelper [x] [y] = undefined 
 
 ------------------------------------------------------------------------------
 -- Ex 5: get all occurrences of the largest number in a list with a
@@ -98,7 +110,8 @@ largestHelper = undefined
 myHead :: [a] -> Maybe a
 myHead xs = foldr headHelper Nothing xs
 
-headHelper = undefined
+headHelper :: a -> Maybe a -> Maybe a
+headHelper a b = Just a
 
 ------------------------------------------------------------------------------
 -- Ex 7: get the last element of a list with a fold. Define lasthelper
@@ -113,4 +126,6 @@ headHelper = undefined
 myLast :: [a] -> Maybe a
 myLast xs = foldr lastHelper Nothing xs
 
-lastHelper = undefined
+
+lastHelper :: a -> Maybe a -> Maybe a
+lastHelper a b = undefined
