@@ -14,7 +14,7 @@ data Tree a = Empty | Node a (Tree a) (Tree a)
 
 valAtRoot :: Tree a -> Maybe a
 valAtRoot Empty = Nothing
-valAtRoot t = undefined
+valAtRoot (Node a _ _) = Just a
 
 ------------------------------------------------------------------------------
 -- Ex 2: compute the size of a tree, that is, the number of Node
@@ -25,7 +25,8 @@ valAtRoot t = undefined
 --   treeSize (Node 3 (Node 7 Empty Empty) (Node 1 Empty Empty))  ==>  3
 
 treeSize :: Tree a -> Int
-treeSize t = undefined
+treeSize Empty = 0
+treeSize (Node x y z) = 1 + treeSize y + treeSize z
 
 ------------------------------------------------------------------------------
 -- Ex 3: get the largest value in a tree of positive Ints. The
@@ -36,7 +37,11 @@ treeSize t = undefined
 --   treeMax (Node 3 (Node 5 Empty Empty) (Node 4 Empty Empty))  ==>  5
 
 treeMax :: Tree Int -> Int
-treeMax = undefined
+treeMax Empty = 0
+treeMax (Node x y z)
+  | x > treeMax y && x > treeMax z = x
+  | treeMax y > x && treeMax y > treeMax z = treeMax y
+  | otherwise = treeMax z
 
 ------------------------------------------------------------------------------
 -- Ex 4: implement a function that checks if all tree values satisfy a
@@ -48,9 +53,8 @@ treeMax = undefined
 --   allValues (>0) (Node 1 Empty (Node 0 Empty Empty))  ==>  False
 
 allValues :: (a -> Bool) -> Tree a -> Bool
-allValues condition Empty = True 
-allValues condition node = undefined
-
+allValues condition Empty = True
+allValues condition (Node x y z) = condition x && allValues condition y && allValues condition z
 ------------------------------------------------------------------------------
 -- Ex 5: implement map for trees.
 --
@@ -61,8 +65,8 @@ allValues condition node = undefined
 --   ==> (Node 2 (Node 3 Empty Empty) (Node 4 Empty Empty))
 
 mapTree :: (a -> b) -> Tree a -> Tree b
-mapTree f t = undefined
-
+mapTree f Empty = Empty
+mapTree f (Node x y z) = undefined
 ------------------------------------------------------------------------------
 -- Ex 6: given a value and a tree, build a new tree that is the same,
 -- except all nodes that contain the value have been removed. Also
@@ -105,7 +109,8 @@ mapTree f t = undefined
 --                 (Node 3 Empty Empty))
 
 cull :: Eq a => a -> Tree a -> Tree a
-cull val tree = undefined
+cull value Empty = Empty
+cull val (Node x y z) = if x == val then Empty else cull val y && cull val z
 
 ------------------------------------------------------------------------------
 -- Ex 7: check if a tree is ordered. A tree is ordered if:
@@ -147,4 +152,5 @@ cull val tree = undefined
 --                     (Node 3 Empty Empty))   ==>   True
 
 isOrdered :: Ord a => Tree a -> Bool
-isOrdered = undefined
+isOrdered Empty = True
+isOrdered (Node x y z) = allValues (>x) y && allValues (<x) z && isOrdered y && isOrdered z
