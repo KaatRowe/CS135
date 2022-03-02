@@ -98,8 +98,8 @@ largestHelper :: Int -> [Int] -> [Int]
 largestHelper x xs
     | null xs = [x]
     | x > head xs = [x]
-    | x == head xs = x :xs
-    |otherwise = xs
+    | x == head xs = x : xs
+    | otherwise = xs
 
 ------------------------------------------------------------------------------
 -- Ex 6: get the first element of a list with a fold. Define

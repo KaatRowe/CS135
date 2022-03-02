@@ -39,8 +39,8 @@ treeSize (Node x y z) = 1 + treeSize y + treeSize z
 treeMax :: Tree Int -> Int
 treeMax Empty = 0
 treeMax (Node x y z)
-  | x > treeMax y && x > treeMax z = x
-  | treeMax y > x && treeMax y > treeMax z = treeMax y
+  | x >= treeMax y && x >= treeMax z = x
+  | treeMax y >= x && treeMax y >= treeMax z = treeMax y
   | otherwise = treeMax z
 
 ------------------------------------------------------------------------------
@@ -66,7 +66,7 @@ allValues condition (Node x y z) = condition x && allValues condition y && allVa
 
 mapTree :: (a -> b) -> Tree a -> Tree b
 mapTree f Empty = Empty
-mapTree f (Node x y z) = undefined
+mapTree f (Node x y z) = Node (f x) (mapTree f y) (mapTree f z)
 ------------------------------------------------------------------------------
 -- Ex 6: given a value and a tree, build a new tree that is the same,
 -- except all nodes that contain the value have been removed. Also
@@ -109,8 +109,8 @@ mapTree f (Node x y z) = undefined
 --                 (Node 3 Empty Empty))
 
 cull :: Eq a => a -> Tree a -> Tree a
-cull value Empty = Empty
-cull val (Node x y z) = if x == val then Empty else cull val y && cull val z
+cull val Empty = Empty
+cull val (Node x y z) = if val == x then Empty else Node x (cull val y) (cull val z)
 
 ------------------------------------------------------------------------------
 -- Ex 7: check if a tree is ordered. A tree is ordered if:
@@ -153,4 +153,4 @@ cull val (Node x y z) = if x == val then Empty else cull val y && cull val z
 
 isOrdered :: Ord a => Tree a -> Bool
 isOrdered Empty = True
-isOrdered (Node x y z) = allValues (>x) y && allValues (<x) z && isOrdered y && isOrdered z
+isOrdered (Node x y z) = allValues (<x) y && allValues (>x) z && isOrdered y && isOrdered z

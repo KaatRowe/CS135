@@ -1,6 +1,9 @@
 -- Exercise set 5a
 
+
 module Lab5a where
+
+-- help from Bryan, Callie
 
 ------------------------------------------------------------------------------
 -- Ex 1: Define the type Vehicle that has four constructors: Bike,
@@ -8,8 +11,7 @@ module Lab5a where
 --
 -- The constructors don't need any fields.
 
-data Vehicle = Bike | Bus | Tram | Train 
-    deriving Show
+data Vehicle = Bike | Bus | Tram | Train
 
 ------------------------------------------------------------------------------
 -- Ex 2: Define the type BusTicket that can represent values like these:
@@ -18,7 +20,6 @@ data Vehicle = Bike | Bus | Tram | Train
 --  - MonthlyTicket "December"
 
 data BusTicket = SingleTicket | MonthlyTicket String
-    deriving Show
 
 ------------------------------------------------------------------------------
 -- Ex 3: define a datatype Person, which should contain the age (an
@@ -27,7 +28,7 @@ data BusTicket = SingleTicket | MonthlyTicket String
 -- Also define a Person value fred, and the functions getAge, getName,
 -- setAge and setName (see below).
 
-data Person = MkPerson Int String
+data Person = MkPerson {age :: Int, name :: String}
   deriving Show
 
 -- fred is a person whose name is Fred and age is 90
@@ -64,10 +65,10 @@ data Position = MkPosition Int Int
 -- origin is a Position value with x and y set to 0
 origin :: Position
 origin = MkPosition 0 0
- 
+
 -- getX returns the x of a Position
 getX :: Position -> Int
-getX (MkPosition x y) = x 
+getX (MkPosition x y) = x
 
 -- getY returns the y of a position
 getY :: Position -> Int
@@ -111,11 +112,15 @@ data OneOrTwo k = One k | Two k k
 -- Also define the functions toList and fromList that convert between
 -- KeyVals and lists of pairs.
 
-data KeyVals k v = Empty | Pair k (KeyVals k v)
+data KeyVals k v = Empty | Pair k v (KeyVals k v)
   deriving Show
 
 toList :: KeyVals k v -> [(k,v)]
-toList = undefined
+toList Empty = []
+toList (Pair a b x) = (a, b) : toList x
 
 fromList :: [(k,v)] -> KeyVals k v
-fromList = undefined
+fromList [] = Empty
+fromList ((k,v) : xs) = Pair k v (fromList xs) 
+
+ 
