@@ -1,10 +1,12 @@
 -- Exercise set 6: defining classes and instances
 
+--10, 9, 8 undefined
+
 module Lab6 where
 
 import Data.Char (toLower)
 
---Help from Bryan
+--Help from Bryan, Case
 
 ------------------------------------------------------------------------------
 -- Ex 1: define an Eq instance for the type Country below. You'll need
@@ -104,21 +106,15 @@ instance Price Egg where
 -- price [Just ChocolateEgg, Nothing, Just ChickenEgg]  ==> 50
 -- price [Nothing, Nothing, Just (Milk 1), Just (Milk 2)]  ==> 45
 
-{- instance Price (Maybe a) where
-  price (Just ChickenEgg) = 20
+instance Num a => Price (Maybe a) where
   price Nothing = 0
-  price (Just ChocolateEgg) = 30
+  price (Just a) = price a
 
-instance Price [a] where
+
+instance Price a => Price [a] where
   price [] = 0
-  price (x : xs)
-    | x == Just ChickenEgg = 20 + price xs
-    | x == Just ChocolateEgg = 30 + price xs
-    | x == Milk y = 15 * y + price xs
-    | x == Just (Milk y) = 15 * y + price xs
-    | otherwise = price xs
+  price (x : xs) = price x + price xs
 
- -}
 
 ------------------------------------------------------------------------------
 -- Ex 7: below you'll find the datatype Number, which is either an
@@ -233,7 +229,7 @@ class Addable a where
 
 instance Addable Integer where
     zero = 0
-    add x y = (x + y)
+    add x y = x + y
 
 instance Addable [a] where
     zero = [];
