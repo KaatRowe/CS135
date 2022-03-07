@@ -1,3 +1,4 @@
 {
-    "git.ignoreLimitWarning": true
+    "git.ignoreLimitWarning": true,
+    "haskell.plugin.ghcide-completions.config.autoExtendOn": false
 }

@@ -4,6 +4,8 @@ module Lab6 where
 
 import Data.Char (toLower)
 
+--Help from Bryan
+
 ------------------------------------------------------------------------------
 -- Ex 1: define an Eq instance for the type Country below. You'll need
 -- to use pattern matching.
@@ -12,7 +14,10 @@ data Country = Finland | Switzerland | Norway
   deriving Show
 
 instance Eq Country where
-  (==) = undefined
+  Finland == Finland = True
+  Switzerland == Switzerland = True
+  Norway == Norway = True
+  _ == _ = False
 
 ------------------------------------------------------------------------------
 -- Ex 2: implement an Ord instance for Country so that
@@ -21,10 +26,15 @@ instance Eq Country where
 -- Remember minimal complete definitions!
 
 instance Ord Country where
-  compare = undefined -- implement me?
-  (<=) = undefined -- and me?
-  min = undefined -- and me?
-  max = undefined -- and me?
+  compare Finland Norway = LT
+  compare Norway Switzerland = LT
+  compare Finland Switzerland = LT
+  compare Finland Finland = EQ
+  compare Norway Norway = EQ
+  compare Switzerland Switzerland = EQ
+  compare _ _ = GT
+
+  (<=) a b = a < b || a == b
 
 ------------------------------------------------------------------------------
 -- Ex 3: Implement an Eq instance for the type Name which contains a String.
@@ -40,7 +50,7 @@ data Name = Name String
   deriving Show
 
 instance Eq Name where
-  (==) = undefined
+  (Name a) == (Name b) = map toLower a == map toLower b
 
 ------------------------------------------------------------------------------
 -- Ex 4: here is a list type parameterized over the type it contains.
@@ -54,7 +64,10 @@ data List a = Empty | LNode a (List a)
   deriving Show
 
 instance Eq a => Eq (List a) where
-  (==) = undefined
+  Empty == Empty = True
+  Empty == _ = False
+  _ == Empty = False
+  (LNode a xs) == (LNode b ys) = a == b && xs == ys
 
 ------------------------------------------------------------------------------
 -- Ex 5: below you'll find two datatypes, Egg and Milk. Implement a
@@ -74,7 +87,15 @@ data Egg = ChickenEgg | ChocolateEgg
 data Milk = Milk Int -- amount in litres
   deriving Show
 
+class Price a where
+  price :: a -> Int
 
+instance Price Milk where
+  price (Milk a) = 15 * a
+
+instance Price Egg where
+  price ChickenEgg = 20
+  price ChocolateEgg = 30
 ------------------------------------------------------------------------------
 -- Ex 6: define the necessary instances in order to be able to compute these:
 --
@@ -83,6 +104,21 @@ data Milk = Milk Int -- amount in litres
 -- price [Just ChocolateEgg, Nothing, Just ChickenEgg]  ==> 50
 -- price [Nothing, Nothing, Just (Milk 1), Just (Milk 2)]  ==> 45
 
+{- instance Price (Maybe a) where
+  price (Just ChickenEgg) = 20
+  price Nothing = 0
+  price (Just ChocolateEgg) = 30
+
+instance Price [a] where
+  price [] = 0
+  price (x : xs)
+    | x == Just ChickenEgg = 20 + price xs
+    | x == Just ChocolateEgg = 30 + price xs
+    | x == Milk y = 15 * y + price xs
+    | x == Just (Milk y) = 15 * y + price xs
+    | otherwise = price xs
+
+ -}
 
 ------------------------------------------------------------------------------
 -- Ex 7: below you'll find the datatype Number, which is either an
@@ -93,6 +129,15 @@ data Milk = Milk Int -- amount in litres
 
 data Number = Finite Integer | Infinite
   deriving (Show,Eq)
+
+instance Ord Number where
+  compare Infinite (Finite a) = GT
+  compare (Finite a) Infinite = LT
+  compare Infinite Infinite = EQ
+  compare (Finite a) (Finite b)
+    | a > b = GT
+    | a < b = LT
+    | otherwise = EQ
 
 
 ------------------------------------------------------------------------------
@@ -119,7 +164,7 @@ data RationalNumber = RationalNumber Integer Integer
   deriving Show
 
 instance Eq RationalNumber where
-  p == q = undefined
+  (RationalNumber a d) == (RationalNumber b c) = a * b == d * c || a == b && d == c || a == b && a == 0
 
 ------------------------------------------------------------------------------
 -- Ex 9: implement the function simplify, which simplifies rational a
@@ -139,8 +184,7 @@ instance Eq RationalNumber where
 -- Hint: Remember the function gcd?
 
 simplify :: RationalNumber -> RationalNumber
-simplify p = undefined
-
+simplify (RationalNumber x y) = undefined
 ------------------------------------------------------------------------------
 -- Ex 10: implement the typeclass Num for RationalNumber. The results
 -- of addition and multiplication must be simplified.
@@ -160,7 +204,10 @@ simplify p = undefined
 --   signum (RationalNumber 0 2)             ==> RationalNumber 0 1
 
 instance Num RationalNumber where
-  p + q = undefined
+  RationalNumber x y + RationalNumber a b
+    | b == y && x == a = RationalNumber (x + a) 1
+    | b == y = RationalNumber (x + a) y
+    | otherwise = simplify (RationalNumber (x + a) (y * b))
   p * q = undefined
   abs q = undefined
   signum q = undefined
@@ -180,6 +227,17 @@ instance Num RationalNumber where
 --   add [1,2] [3,4]        ==>  [1,2,3,4]
 --   add zero [True,False]  ==>  [True,False]
 
+class Addable a where
+    zero :: a
+    add :: a -> a -> a
+
+instance Addable Integer where
+    zero = 0
+    add x y = (x + y)
+
+instance Addable [a] where
+    zero = [];
+    add x y = x ++ y
 
 ------------------------------------------------------------------------------
 -- Ex 12: cycling. Implement a type class Cycle that contains a
@@ -210,3 +268,21 @@ data Color = Red | Green | Blue
   deriving (Show, Eq)
 data Suit = Club | Spade | Diamond | Heart
   deriving (Show, Eq)
+
+class Cycle a where
+    step :: a -> a
+
+    stepMany :: Int -> a -> a
+    stepMany 0 y = y
+    stepMany 1 y = step y
+    stepMany x y = stepMany (x - 1) (step y)
+instance Cycle Color where
+  step Red = Green
+  step Green = Blue
+  step Blue = Red
+
+instance Cycle Suit where
+  step Club = Spade
+  step Spade = Diamond
+  step Diamond = Heart
+  step Heart = Club
