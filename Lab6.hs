@@ -1,6 +1,6 @@
 -- Exercise set 6: defining classes and instances
 
---10, 9, 8 undefined
+--10 undefined
 
 module Lab6 where
 
@@ -106,7 +106,7 @@ instance Price Egg where
 -- price [Just ChocolateEgg, Nothing, Just ChickenEgg]  ==> 50
 -- price [Nothing, Nothing, Just (Milk 1), Just (Milk 2)]  ==> 45
 
-instance Num a => Price (Maybe a) where
+instance Price a => Price (Maybe a) where
   price Nothing = 0
   price (Just a) = price a
 
@@ -160,7 +160,7 @@ data RationalNumber = RationalNumber Integer Integer
   deriving Show
 
 instance Eq RationalNumber where
-  (RationalNumber a d) == (RationalNumber b c) = a * b == d * c || a == b && d == c || a == b && a == 0
+  (RationalNumber a b) == (RationalNumber c d) = a * d == b * c
 
 ------------------------------------------------------------------------------
 -- Ex 9: implement the function simplify, which simplifies rational a
@@ -180,7 +180,8 @@ instance Eq RationalNumber where
 -- Hint: Remember the function gcd?
 
 simplify :: RationalNumber -> RationalNumber
-simplify (RationalNumber x y) = undefined
+simplify (RationalNumber x y) = RationalNumber (x `div` gcd x y) (y `div` gcd x y)
+
 ------------------------------------------------------------------------------
 -- Ex 10: implement the typeclass Num for RationalNumber. The results
 -- of addition and multiplication must be simplified.
@@ -197,18 +198,15 @@ simplify (RationalNumber x y) = undefined
 --   fromInteger 17 :: RationalNumber        ==> RationalNumber 17 1
 --   abs (RationalNumber (-3) 2)             ==> RationalNumber 3 2
 --   signum (RationalNumber (-3) 2)          ==> RationalNumber (-1) 1
---   signum (RationalNumber 0 2)             ==> RationalNumber 0 1
+--   signum (RationalNumber 0 2)             ==> RationalNumber 0 1-
 
 instance Num RationalNumber where
-  RationalNumber x y + RationalNumber a b
-    | b == y && x == a = RationalNumber (x + a) 1
-    | b == y = RationalNumber (x + a) y
-    | otherwise = simplify (RationalNumber (x + a) (y * b))
-  p * q = undefined
-  abs q = undefined
-  signum q = undefined
-  fromInteger x = undefined
-  negate q = undefined
+  RationalNumber a b + RationalNumber c d = simplify (RationalNumber ((a*d)+ (c*b)) (b*d))
+  RationalNumber x y * RationalNumber a b = simplify (RationalNumber (x*a) (y*b))
+  abs (RationalNumber a b) = RationalNumber (abs a) (abs b)
+  signum (RationalNumber a b) = RationalNumber (signum a) (signum b)
+  fromInteger x = RationalNumber x 1
+  negate (RationalNumber a b) = RationalNumber (a * (-1)) b
 
 ------------------------------------------------------------------------------
 -- Ex 11: a class for adding things. Define a class Addable with a
