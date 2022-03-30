@@ -264,12 +264,12 @@ data Suit = Club | Spade | Diamond | Heart
   deriving (Show, Eq)
 
 class Cycle a where
-    step :: a -> a
+  step :: a -> a
 
-    stepMany :: Int -> a -> a
-    stepMany 0 y = y
-    stepMany 1 y = step y
-    stepMany x y = stepMany (x - 1) (step y)
+  stepMany :: Int -> a -> a
+  stepMany 0 y = y
+  stepMany 1 y = step y
+  stepMany x y = stepMany (x - 1) (step y)
 instance Cycle Color where
   step Red = Green
   step Green = Blue
