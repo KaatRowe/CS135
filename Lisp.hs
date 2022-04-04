@@ -2,25 +2,35 @@ module Lisp where
 
 import Parsing 
 
-data Value = NumV Int | BoolV Bool 
-    deriving Show
-    
+--------------------------------------
+-- Datatypes
+--------------------------------------
 
-data Expr = 
-      Plus Expr Expr 
-    | Multi Expr Expr 
-    | Num Int 
-    | TrueE 
-    | FalseE 
-    | If Expr Expr Expr
-    deriving Show
+data Value = NumV Int | BoolV Bool deriving Show
+
+data Expr = Plus Expr Expr
+          | Mult Expr Expr
+          | Num Int 
+          | TrueE 
+          | FalseE 
+          | If Expr Expr Expr
+          | Id Identifier
+          | FnApp Identifier Expr
+          deriving Show
 
 
-pExpr :: Parser Expr
-pExpr = pPlus <|> pMult <|> pLiteral
+type Identifier = String
 
-pLiteral :: Parser Expr
-pLiteral = Num <$> natural <|> pTrue <|> pFalse
+data FnDef = FnDef {fnName :: String, fnParams :: Identifier, fnBody :: Expr}
+--------------------------------------
+-- Parser
+--------------------------------------
+
+pExpr :: Parser Expr 
+pExpr = pPlus <|> pMult <|> pMinus <|> pLiteral <|> pIf
+
+pLiteral :: Parser Expr 
+pLiteral = Num <$> natural <|> pTrue <|> pFalse 
 
 pTrue :: Parser Expr 
 pTrue = do symbol "#t" 
@@ -36,9 +46,12 @@ pPlus = pFunc "+" (Plus <$> pExpr <*> pExpr)
 pMult :: Parser Expr
 pMult = pFunc "*" (Mult <$> pExpr <*> pExpr)
 
-pMinus :: Parser Expr
-pMinus = pFunc "-" (minus <$> pExpr <*> pExpr)
-    where minus e1 e2 = Plus e1 (Mult (Num (-1) e2))
+pMinus :: Parser Expr 
+pMinus = pFunc "-" (minus <$> pExpr <*> pExpr) 
+   where minus e1 e2 = Plus e1 (Mult (Num (-1)) e2) 
+
+pIf :: Parser Expr 
+pIf = pFunc "if" (If <$> pExpr <*> pExpr <*> pExpr)
 
 pFunc :: String -> Parser Expr -> Parser Expr 
 pFunc s p = do symbol "(" 
@@ -47,28 +60,62 @@ pFunc s p = do symbol "("
                symbol ")" 
                return exp
 
-pString :: String -> Expr
-pString str = case runParser pExpr str of
-    [(x, "")] -> x
-    _ -> error "*** Not Parsable"
+{- pCond :: Parser Expr -> Parser Expr
+pCond = pFunc "cond" pCases 
+
+pCases = do symbol "("
+            cnd <- pExpr
+            bdy <- pExpr
+            symbol ")"  -}
 
 
-----------------------------------------------------------------
 
-binOp :: (Int -> Int -> Int) -> (Value -> Value -> Value)
-binOp op (NumV x) (NumV y) = NumV (op x y)
-binOp _ _ _ = error "*** Not numeric args"
+parseString :: String -> Expr
+parseString s = case runParser pExpr s of
+    [(x,"")] -> x 
+    _        -> error "*** not parsable"
 
-interp :: Expr -> Value
-interp exp = case exp of 
-    Num n -> NumV n
-    TrueE -> BoolV True
-    FalseE -> BoolV False
-    Plus x y -> binOp (+) (interp x) (interp y)
-    Multi x y -> binOp (*) (interp x) (interp y)
+--------------------------------------
+-- Interpreter
+--------------------------------------
 
-    If cnd thn els -> case interp cnd of 
-        BoolV True -> interp thn
-        BoolV False -> interp els
-        _ -> error "*** Not a Bool"
+binOp :: (Int -> Int -> Int) -> (Value -> Value -> Value) 
+binOp op (NumV x) (NumV y) = NumV (op x y) 
+binOp _ _ _ = error "*** not numeric args"
+
+interp :: [FnDef] -> Expr -> Value
+interp fns exp = case exp of 
+        Num n  -> NumV n
+        TrueE  -> BoolV True
+        FalseE -> BoolV False
+        Plus x y -> binOp (+) (interp fns x) (interp fns y) 
+        Mult x y -> binOp (*) (interp fns x) (interp fns y)
+
+        If cnd thn els -> case interp fns cnd of 
+                            BoolV True  -> interp fns thn 
+                            BoolV False -> interp fns els 
+                            _           -> error "*** not a Bool"
+
         
+        FnApp f x -> let (FnDef _ param body) = lookupFn f fns in interp fns (subst param x body)
+
+        Id id -> error "*** unbounded identifier"
+
+lookupFn :: Identifier -> [FnDef] -> FnDef
+lookupFn = undefined
+
+subst :: Identifier -> Expr -> Expr -> Expr 
+subst param arg body = 
+    let sub = subst param arg
+    in case body of
+    Plus x y -> Plus (sub x) (sub y)
+    Mult x y -> Mult (sub x) (sub y)
+    Num n -> Num n
+    TrueE -> TrueE
+    FalseE -> FalseE
+
+    If cnd thn els -> If (sub cnd) (sub thn) (sub els)
+
+    FnApp f x -> FnApp f (sub x)
+
+    Id var -> if param == var then arg else Id var

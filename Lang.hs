@@ -47,10 +47,18 @@ pSugar = pMinus <|> pAnd <|> pOr <|> pLessThanEqualTo <|> pGreaterThan <|> pGrea
         minusD l r = Op Plus l (Op Mult r (NumE (-1)))
         andD l r   = If l r FalseE
         orD l      = If l TrueE
-        lessThanEqualToD l r = Op LessThan l (Op Equal l r)
+        lessThanEqualToD l r = orD (Op LessThan l r) (Op Equal l r)
         greaterThanD l r = Op LessThan r l
-        greaterThanEqualToD l r = Op LessThan r (Op Equal r l)
+        greaterThanEqualToD l r = orD (Op LessThan r l) (Op Equal r l)
         notD x     = If x FalseE TrueE
+{-         pCond = pFunc "cond" pCases
+
+pCases = do symbol "("
+            cnd <- pExpr
+            bdy <- pExpr
+            symbol ")" -}
+
+--CONDITIONALS
 
 pLiteral :: Parser Expr
 pLiteral = pNum <|> pTrue <|> pFalse
@@ -79,10 +87,7 @@ interp exp = case exp of
   NumE n -> NumV n
   TrueE -> BoolV True
   FalseE -> BoolV False
-  Op Plus x y -> opTable Plus (interp x) (interp y)
-  Op Mult x y -> opTable Mult (interp x) (interp y)
-  Op Equal x y -> opTable Equal (interp x) (interp y) 
-  Op LessThan x y -> opTable LessThan (interp x) (interp y)
+  Op op x y -> opTable op (interp x) (interp y)
 
   If cnd thn els -> case interp cnd of
     BoolV True -> interp thn
@@ -94,6 +99,6 @@ interp exp = case exp of
 opTable :: Operator -> (Value -> Value -> Value)
 opTable Plus = \(NumV x) (NumV y) -> NumV (x + y)
 opTable Mult = \(NumV x) (NumV y) -> NumV (x * y)
-opTable Equal = \(NumV x) (NumV y) -> if x == y then BoolV True else BoolV False
+opTable Equal = \x y -> if x == y then BoolV True else BoolV False
 opTable LessThan = \(NumV x) (NumV y) -> if x < y then BoolV True else BoolV False
 
