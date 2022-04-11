@@ -6,28 +6,40 @@ import Parsing
 -- Datatypes
 --------------------------------------
 
-data Value = NumV Int | BoolV Bool deriving Show
+type Identifier = String 
+
+data FnDef = FnDef Identifier Identifier Expr
+           deriving Show
+
+data Value = NumV Int 
+           | BoolV Bool
+           deriving Show
 
 data Expr = Plus Expr Expr
           | Mult Expr Expr
           | Num Int 
           | TrueE 
           | FalseE 
-          | If Expr Expr Expr
+          | If Expr Expr Expr 
+--                fnName     args
+          | FnApp Identifier Expr 
           | Id Identifier
-          | FnApp Identifier Expr
           deriving Show
 
-
-type Identifier = String
-
-data FnDef = FnDef {fnName :: String, fnParams :: Identifier, fnBody :: Expr}
 --------------------------------------
 -- Parser
 --------------------------------------
 
 pExpr :: Parser Expr 
-pExpr = pPlus <|> pMult <|> pMinus <|> pLiteral <|> pIf
+pExpr = pPlus <|> pMult <|> pIf <|> pSugar <|> pFnApp <|> pLiteral <|> pId
+
+pFnApp :: Parser Expr 
+pFnApp = pFunc "" (FnApp <$> identifier <*> pExpr) 
+
+pId = Id <$> identifier
+
+pIf :: Parser Expr 
+pIf = pFunc "if" (If <$> pExpr <*> pExpr <*> pExpr)
 
 pLiteral :: Parser Expr 
 pLiteral = Num <$> natural <|> pTrue <|> pFalse 
@@ -44,14 +56,22 @@ pPlus :: Parser Expr
 pPlus = pFunc "+" (Plus <$> pExpr <*> pExpr)
 
 pMult :: Parser Expr
-pMult = pFunc "*" (Mult <$> pExpr <*> pExpr)
+pMult = pFunc "*" (Mult <$> pExpr <*> pExpr) 
+
+pSugar :: Parser Expr 
+pSugar = pMinus <|> pAnd <|> pOr
 
 pMinus :: Parser Expr 
 pMinus = pFunc "-" (minus <$> pExpr <*> pExpr) 
    where minus e1 e2 = Plus e1 (Mult (Num (-1)) e2) 
 
-pIf :: Parser Expr 
-pIf = pFunc "if" (If <$> pExpr <*> pExpr <*> pExpr)
+pAnd :: Parser Expr 
+pAnd = pFunc "and" (and <$> pExpr <*> pExpr) 
+   where and x y = If x y FalseE 
+
+pOr :: Parser Expr 
+pOr = pFunc "or" (or <$> pExpr <*> pExpr) 
+   where or x y = If x TrueE y
 
 pFunc :: String -> Parser Expr -> Parser Expr 
 pFunc s p = do symbol "(" 
@@ -59,16 +79,6 @@ pFunc s p = do symbol "("
                exp <- p 
                symbol ")" 
                return exp
-
-{- pCond :: Parser Expr -> Parser Expr
-pCond = pFunc "cond" pCases 
-
-pCases = do symbol "("
-            cnd <- pExpr
-            bdy <- pExpr
-            symbol ")"  -}
-
-
 
 parseString :: String -> Expr
 parseString s = case runParser pExpr s of
@@ -85,37 +95,42 @@ binOp _ _ _ = error "*** not numeric args"
 
 interp :: [FnDef] -> Expr -> Value
 interp fns exp = case exp of 
-        Num n  -> NumV n
-        TrueE  -> BoolV True
-        FalseE -> BoolV False
-        Plus x y -> binOp (+) (interp fns x) (interp fns y) 
-        Mult x y -> binOp (*) (interp fns x) (interp fns y)
+   Num n  -> NumV n
+   TrueE  -> BoolV True
+   FalseE -> BoolV False
+   Plus x y -> binOp (+) (interp fns x) (interp fns y) 
+   Mult x y -> binOp (*) (interp fns x) (interp fns y)
 
-        If cnd thn els -> case interp fns cnd of 
-                            BoolV True  -> interp fns thn 
-                            BoolV False -> interp fns els 
-                            _           -> error "*** not a Bool"
+   If cnd thn els -> 
+      case interp fns cnd of 
+        BoolV True  -> interp fns thn 
+        BoolV False -> interp fns els 
+        _ -> error "*** not a Bool" 
 
+   FnApp f arg -> 
+     let (FnDef _ param body) = lookupFn f fns 
+      in interp fns (subst param arg body) 
         
-        FnApp f x -> let (FnDef _ param body) = lookupFn f fns in interp fns (subst param x body)
+   Id id -> error "*** unbounded variable"
 
-        Id id -> error "*** unbounded identifier"
+lookupFn :: Identifier -> [FnDef] -> FnDef 
+lookupFn name [] = error ("*** " ++ name ++ "is not defined") 
+lookupFn name (FnDef nm arg bdy:fs)
+  | name == nm = FnDef nm arg bdy 
+  | otherwise = lookupFn name fs
 
-lookupFn :: Identifier -> [FnDef] -> FnDef
-lookupFn = undefined
 
 subst :: Identifier -> Expr -> Expr -> Expr 
 subst param arg body = 
-    let sub = subst param arg
-    in case body of
-    Plus x y -> Plus (sub x) (sub y)
-    Mult x y -> Mult (sub x) (sub y)
-    Num n -> Num n
-    TrueE -> TrueE
-    FalseE -> FalseE
-
-    If cnd thn els -> If (sub cnd) (sub thn) (sub els)
-
-    FnApp f x -> FnApp f (sub x)
-
-    Id var -> if param == var then arg else Id var
+   let sub = subst param arg 
+    in case body of 
+         Plus x y       -> Plus (sub x) (sub y)
+         Mult x y       -> Mult (sub x) (sub y) 
+         Num n          -> Num n
+         TrueE          -> TrueE
+         FalseE         -> FalseE
+         If cnd thn els -> If (sub cnd) (sub thn) (sub els)
+         FnApp f x      -> FnApp f (sub x) 
+         Id x           -> if param == x 
+                           then arg 
+                           else Id x

@@ -10,19 +10,18 @@ data Expr = Plus Expr Expr | Multi Expr Expr | Num Int
 pExpr :: Parser Expr
 pExpr = do t <- pTerm
            symbol "+"
-           e <- pExpr
-           return (Plus t e)
+           Plus t <$> pExpr
         <|> pTerm
 
 pTerm :: Parser Expr
 pTerm = do f <- pFactor
            symbol "*"
-           t <- pTerm
-           return (Multi f t)
+           Multi f <$> pTerm
         <|> pFactor
 
 pFactor :: Parser Expr
-pFactor = do symbol "("
+pFactor = do
+            symbol "("
             exp <- pExpr
             symbol ")"
             return exp
