@@ -6,115 +6,149 @@ import Parsing
 -- Data Types
 --------------------------------------------------------------------------------
 
-data Value
-  = NumV Int
-  | BoolV Bool
-  deriving (Show, Eq)
+type Identifier = String
 
-data Expr
-  = NumE Int
-  | TrueE
-  | FalseE
-  | Op Operator Expr Expr
-  | If Expr Expr Expr
-  deriving (Show, Eq)
+data Value = NumV Int
+           | BoolV Bool
+           | FnV [Identifier] Expr Env -- Parameters, Body, Closure
+           deriving (Show,Eq)
 
-data Operator
-  = Plus
-  | Mult
-  | Equal
-  | LessThan
-  deriving (Show, Eq)
+type Env = [(Identifier,Value)]
+
+data Expr = NumE Int
+          | TrueE
+          | FalseE
+          | Op Operator Expr Expr
+          | If Expr Expr Expr
+          | FnDef [Identifier] Expr -- Parameters, Body
+          | FnApp Expr [Expr]       -- Function expression
+          | Id Identifier
+          deriving (Show, Eq)
+
+data Operator = Plus
+              | Mult
+              | Equal
+              | LessThan
+              deriving (Show, Eq)
 
 --------------------------------------------------------------------------------
 -- Parser
 --------------------------------------------------------------------------------
+ 
+parens :: Parser a -> Parser a
+parens p = do symbol "("
+              exp <- p
+              symbol ")"
+              return exp
 
 pExpr :: Parser Expr
-pExpr = pPlus <|> pMult <|> pEqual <|> pLessThan <|> pIf <|> pSugar <|> pLiteral
-  where
-    pPlus = pFunc "+" $ Op Plus <$> pExpr <*> pExpr
-    pMult = pFunc "*" $ Op Mult <$> pExpr <*> pExpr
-    pEqual = pFunc "=" $ Op Equal <$> pExpr <*> pExpr
-    pLessThan = pFunc "<" $ Op LessThan <$> pExpr <*> pExpr
-    pIf = pFunc "if" $ If <$> pExpr <*> pExpr <*> pExpr
+pExpr = parens (pBuiltIn <|> pFnApp) <|> pLiteral <|> pId
+  where pFnApp   = FnApp <$> pExpr <*> many pExpr
+        pLiteral = pNum <|> pTrue <|> pFalse
+        pNum     = NumE <$> natural
+        pTrue    = symbol "#t" >> return TrueE
+        pFalse   = symbol "#f" >> return FalseE
+        pId      = Id <$> identifier
 
-pSugar :: Parser Expr
-pSugar = pMinus <|> pAnd <|> pOr <|> pLessThanEqualTo <|> pGreaterThan <|> pGreaterThanEqualTo <|> pNot <|> pCond
-  where
-    pMinus = pFunc "-" $ minusD <$> pExpr <*> pExpr
-    pAnd = pFunc "and" $ andD <$> pExpr <*> pExpr
-    pOr = pFunc "or" $ orD <$> pExpr <*> pExpr
-    pLessThanEqualTo = pFunc "<=" $ lessThanEqualToD <$> pExpr <*> pExpr
-    pGreaterThan = pFunc ">" $ greaterThanD <$> pExpr <*> pExpr
-    pGreaterThanEqualTo = pFunc ">=" $ greaterThanEqualToD <$> pExpr <*> pExpr
-    pCond = pFunc "cond" pCases
-    pNot = pFunc "not" $ notD <$> pExpr
-    minusD l r = Op Plus l (Op Mult r (NumE (-1)))
-    andD l r = If l r FalseE
-    orD l = If l TrueE
-    lessThanEqualToD l r = orD (Op LessThan l r) (Op Equal l r)
-    greaterThanD l r = Op LessThan r l
-    greaterThanEqualToD l r = orD (Op LessThan r l) (Op Equal r l)
-    notD x = If x FalseE TrueE
+pBuiltIn :: Parser Expr
+pBuiltIn =
+  do sym <- identifier
+     case sym of
+       "if"     -> If <$> pExpr <*> pExpr <*> pExpr
+       "lambda" -> FnDef <$> parens (many identifier) <*> pExpr
+       "not"    -> If <$> pExpr <*> return FalseE <*> return TrueE
+       "cond"   -> pCondCases
+       "let"    -> do 
+                      letCases
+       _        -> if sym `elem` binarySymbols
+                   then binaryParseTable sym <$> pExpr <*> pExpr
+                   else failure
 
 
-pCases :: Parser Expr
-pCases =
-  do
-    symbol "("
-    cnd <- pExpr
-    bdy <- pExpr
-    symbol ")"
-    If cnd bdy <$> pCases
-  <|> done
-  where
-    done = do
-      symbol "else"
-      bdy <- pExpr
-      symbol ")"
-      return bdy
-      
+letCases :: Parser Expr
+letCases = vars <|> body
+  vars = do symbol "("
+          id <- identifier
+          exp <- pExpr
+          symbol ")"
 
---CONDITIONALS
+  body = 
 
-pLiteral :: Parser Expr
-pLiteral = pNum <|> pTrue <|> pFalse
-  where
-    pNum = NumE <$> natural
-    pTrue = symbol "#t" >> return TrueE
-    pFalse = symbol "#f" >> return FalseE
 
-pFunc :: String -> Parser a -> Parser a
-pFunc sym p = do
-  symbol "("
-  symbol sym
-  exp <- p
-  symbol ")"
-  return exp
+pCondCases :: Parser Expr
+pCondCases =
+  do symbol "("
+     cnd <- pExpr
+     thn <- pExpr
+     symbol ")"
+     if cnd == Id "else"
+     then return thn
+     else If cnd thn <$> pCondCases
+
+binarySymbols :: [String]
+binarySymbols = ["+", "*", "=", "<", "-", "and", "or", "<=", ">=", ">"]
+
+binaryParseTable :: String -> Expr -> Expr -> Expr
+binaryParseTable sym l r = case sym of
+  "+"   -> Op Plus     l r
+  "*"   -> Op Mult     l r
+  "="   -> Op Equal    l r
+  "<"   -> Op LessThan l r
+  "-"   -> Op Plus l (Op Mult r (NumE (-1)))
+  "and" -> If l r FalseE
+  "or"  -> If l TrueE r
+  "<="  -> If (Op LessThan l r) TrueE (Op Equal l r)
+  ">="  -> If (Op LessThan r l) TrueE (Op Equal l r)
+  ">"   -> Op LessThan r l
 
 parseString :: String -> Expr
 parseString s = case runParser pExpr s of
-  [(x, "")] -> x
-  _ -> error "*** not parsable"
+  [(x,"")] -> x
+  _        -> error "*** not parsable"
 
 --------------------------------------------------------------------------------
 -- Interpreter
 --------------------------------------------------------------------------------
 
-interp :: Expr -> Value
-interp exp = case exp of
+opTable :: Operator -> Value -> Value -> Value
+opTable Plus     (NumV x) (NumV y) = NumV  (x + y)
+opTable Mult     (NumV x) (NumV y) = NumV  (x * y)
+opTable LessThan (NumV x) (NumV y) = BoolV (x < y)
+opTable Equal    x        y        = BoolV (x == y)
+opTable op x y = error ("*** " ++ show op ++ "is incompatible with "
+                               ++ show x ++ " and " ++ show y)
+
+interp :: Env -> Expr -> Value
+interp env exp = case exp of
   NumE n -> NumV n
+
   TrueE -> BoolV True
   FalseE -> BoolV False
-  Op op x y -> opTable op (interp x) (interp y)
-  If cnd thn els -> case interp cnd of
-    BoolV True -> interp thn
-    BoolV False -> interp els
-    _ -> error "*** not a Bool"
 
-opTable :: Operator -> (Value -> Value -> Value)
-opTable Plus = \(NumV x) (NumV y) -> NumV (x + y)
-opTable Mult = \(NumV x) (NumV y) -> NumV (x * y)
-opTable Equal = \x y -> if x == y then BoolV True else BoolV False
-opTable LessThan = \(NumV x) (NumV y) -> if x < y then BoolV True else BoolV False
+  Op op x y -> opTable op (interp env x) (interp env y)
+
+  If cnd thn els -> case interp env cnd of
+    BoolV True -> interp env thn
+    BoolV False -> interp env els
+
+  FnDef param body -> (FnV param body env)
+  FnApp fn arg ->
+    case interp env fn of 
+      FnV param body closure -> 
+        interp (local env param arg) body
+      _  -> error "*** not a function"
+    
+        
+  Id x -> lookupEnv x env
+
+local :: Env -> [Identifier] -> [Expr] -> Env
+local env (id:ids) (arg:args) = local ((id, interp env arg):env) ids args 
+local env [] [] = env 
+local env [] _ = error "*** not a function"
+local env _ [] = error "*** not a function"
+
+lookupEnv :: Identifier -> Env -> Value
+lookupEnv x [] = error ("*** unbound variable " ++ x)
+lookupEnv x ((id,val):bs)
+  | x == id   = val
+  | otherwise = lookupEnv x bs
