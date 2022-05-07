@@ -2,6 +2,8 @@ module Lang where
 
 import Parsing
 
+
+--help from Kali, Julian, Bryan, Case, Sarah
 --------------------------------------------------------------------------------
 -- Data Types
 --------------------------------------------------------------------------------
@@ -34,7 +36,7 @@ data Operator = Plus
 --------------------------------------------------------------------------------
 -- Parser
 --------------------------------------------------------------------------------
- 
+
 parens :: Parser a -> Parser a
 parens p = do symbol "("
               exp <- p
@@ -58,22 +60,27 @@ pBuiltIn =
        "lambda" -> FnDef <$> parens (many identifier) <*> pExpr
        "not"    -> If <$> pExpr <*> return FalseE <*> return TrueE
        "cond"   -> pCondCases
-       "let"    -> do 
-                      letCases
+       "let"    -> pBindings
        _        -> if sym `elem` binarySymbols
                    then binaryParseTable sym <$> pExpr <*> pExpr
                    else failure
 
+pBinding :: Parser (String, Expr)
+pBinding = do
+            symbol "("
+            id <- identifier
+            exp <- pExpr
+            symbol ")"
+            return (id, exp)
 
-letCases :: Parser Expr
-letCases = vars <|> body
-  vars = do symbol "("
-          id <- identifier
-          exp <- pExpr
-          symbol ")"
 
-  body = 
-
+pBindings :: Parser Expr
+pBindings = do
+              symbol "("
+              manyargs <- many pBinding
+              symbol ")"
+              body <- pExpr
+              return (FnApp (FnDef ([id | (id, exp) <- manyargs]) body) ([exp | (id, exp) <- manyargs]))
 
 pCondCases :: Parser Expr
 pCondCases =
@@ -131,19 +138,19 @@ interp env exp = case exp of
     BoolV True -> interp env thn
     BoolV False -> interp env els
 
-  FnDef param body -> (FnV param body env)
+  FnDef param body -> FnV param body env
   FnApp fn arg ->
-    case interp env fn of 
-      FnV param body closure -> 
+    case interp env fn of
+      FnV param body closure ->
         interp (local env param arg) body
       _  -> error "*** not a function"
-    
-        
+
+
   Id x -> lookupEnv x env
 
 local :: Env -> [Identifier] -> [Expr] -> Env
-local env (id:ids) (arg:args) = local ((id, interp env arg):env) ids args 
-local env [] [] = env 
+local env (id:ids) (arg:args) = local ((id, interp env arg):env) ids args
+local env [] [] = env
 local env [] _ = error "*** not a function"
 local env _ [] = error "*** not a function"
 
